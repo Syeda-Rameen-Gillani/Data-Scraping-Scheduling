@@ -4,7 +4,7 @@ This project scrapes case law data from the Sindh High Court Case Law portal and
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 .
 ├── scraper.py          # Scraping logic (requests + parsing)
@@ -18,7 +18,7 @@ This project scrapes case law data from the Sindh High Court Case Law portal and
 
 ---
 
-## ⚙️ Features
+##  Features
 
 - Scrapes case records from SHC portal
 - Handles retries and throttling
@@ -32,7 +32,7 @@ This project scrapes case law data from the Sindh High Court Case Law portal and
 
 ---
 
-## 🧰 Requirements
+## Requirements
 
 - Python 3.8+
 - Recommended: virtual environment
@@ -45,7 +45,7 @@ pip install requests beautifulsoup4 apscheduler
 
 ---
 
-## 🚀 Run Without Scheduler (Manual Run)
+##  Run Without Scheduler (Manual Run)
 
 Run scraping manually using:
 
@@ -62,7 +62,7 @@ python -c "from scraper import scrape_cases; from storage import upsert; print(u
 
 ---
 
-## ⏰ Run With Scheduler (Automated Daily Run)
+##  Run With Scheduler (Automated Daily Run)
 
 The scheduler runs the scraper every day at **02:00 AM (Asia/Karachi time)**.
 
@@ -84,7 +84,7 @@ CTRL + C
 
 ---
 
-## 📊 Output Files
+##  Output Files
 
 ### Master Data
 
@@ -100,7 +100,7 @@ Stores raw results from each run for history/debugging.
 
 ---
 
-## 🪵 Logs
+##  Logs
 
 logs/scraper.log   → scraping logs
 logs/scheduler.log → scheduler logs
@@ -109,7 +109,7 @@ Logs also appear in terminal.
 
 ---
 
-## ⚠️ Notes
+##  Notes
 
 * Uses retry mechanism for failed requests
 * Adds delay between requests (throttling = 2 seconds)
@@ -119,7 +119,7 @@ Logs also appear in terminal.
 
 ---
 
-## 🛠 Configuration
+## Configuration
 
 You can modify these in scraper.py:
 
@@ -134,7 +134,7 @@ CronTrigger(hour=2, minute=0)
 
 ---
 
-## 🧑‍💻 Author
+## Author
 
 Custom scraping system for legal research and case tracking.
 
