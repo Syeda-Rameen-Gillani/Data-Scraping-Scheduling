@@ -5,8 +5,9 @@ import sys
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-from scraper import scrape_cases
+from scraper import scrape_cases, process_case
 from storage import upsert
+from ingestion_pipeline import ingest
 
 os.makedirs("logs", exist_ok=True)
 logging.basicConfig(
@@ -44,9 +45,21 @@ def daily_scrape_job():
         if records:
             summary = upsert(records)
             log.info("Done: %s", summary)
-        else:
-            log.warning("No records returned — site may be down or empty.")
 
+            changed = summary.get("changed_records", [])
+            log.info("Processing %d new/updated case(s) into PDF+Markdown+JSON...", len(changed))
+            for case in changed:
+                try:
+                    process_case(case)
+                except Exception:
+                    log.exception("Failed to process case %s", case.get("code"))
+        else:
+            log.warning("No records returned â€” site may be down or empty.")
+
+        log.info("Starting ingestion into Weaviate...")
+        ingest()
+        log.info("Ingestion into Weaviate complete.")
+        
     except Exception as exc:
         log.exception("Unhandled error in scrape job: %s", exc)
 

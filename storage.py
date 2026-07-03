@@ -75,38 +75,36 @@ def upsert(records: list[dict]) -> dict:
     """
     store     = _load_master()
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")
-
+    
     added = updated = unchanged = 0
     stamped_records = []           # what goes into the snapshot
-
+    changed_records = []           # new OR updated records (for downstream processing)
     for rec in records:
         code = rec.get("code")
         if not code:
             continue
-
         # Work on a copy so the caller's list is never mutated
         stamped = {**rec, "_scraped_at": timestamp}
         stamped_records.append(stamped)
-
         if code not in store:
             store[code] = stamped
             added += 1
+            changed_records.append(stamped)
         else:
             existing = store[code]
-
-            # Compare data fields only — ignore _scraped_at on both sides
+            # Compare data fields only â€” ignore _scraped_at on both sides
             def _data(r):
                 return {k: v for k, v in r.items() if k != "_scraped_at"}
-
             if _data(existing) != _data(stamped):
                 store[code] = stamped
                 updated += 1
+                changed_records.append(stamped)
             else:
                 unchanged += 1
+    
 
     _save_master(store)
     snapshot_path = _save_run_snapshot(stamped_records, timestamp)
-
     summary = {
         "added":     added,
         "updated":   updated,
@@ -114,7 +112,9 @@ def upsert(records: list[dict]) -> dict:
         "total":     len(store),
         "snapshot":  str(snapshot_path),
         "timestamp": timestamp,
+        "changed_records": changed_records,
     }
+    
 
     log.info("Storage upsert: %s", summary)
     return summary

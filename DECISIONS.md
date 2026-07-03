@@ -197,3 +197,181 @@ logs/
 
 The per-run snapshots make it easy to audit exactly what changed between runs
 without diffing the master file.
+
+---
+
+## 10. Incremental Ingestion into Weaviate
+
+`ingestion_pipeline.py` decides what needs to be (re-)embedded using a local
+manifest file (`output/ingestion_manifest.json`), **not** a query against
+Weaviate itself.
+
+### Why not just ask Weaviate what it already has?
+
+An earlier version pulled every existing `chunk_id` out of Weaviate via
+`collection.iterator()` before each run, to know what to skip. That works at
+small scale, but the cost of that scan grows with the *total* size of the
+collection, not with the amount of new data — so ingestion gets slower every
+single day even on days where nothing changed. That's the opposite of what
+"incremental" should mean.
+
+### The manifest approach
+
+The manifest is a flat `{case_code: content_hash}` mapping, kept on the same
+server as the scheduler and ingestion job (per the co-location requirement).
+On each run:
+
+1. Hash the current markdown text for each case.
+2. If `manifest[case_code]` already equals that hash → **skip completely**.
+   No re-chunking, no re-embedding, no Weaviate call at all for that case.
+3. If the case is new, or the hash changed → delete that case's existing
+   chunks from Weaviate (`Filter.by_property("case_code")`, a targeted
+   delete, not a scan) and re-chunk/re-embed only that case.
+4. Update the manifest with the new hash.
+
+Cost of step 2 is a single dict lookup, independent of how many chunks exist
+in Weaviate — so the job scales with *how much changed today*, not with the
+size of the entire historical dataset.
+
+This also fixes a correctness gap in the scan-based approach: it never
+deleted stale chunks when a case's content changed, so an edited judgment
+would accumulate duplicate/outdated chunks over time instead of being
+cleanly replaced.
+
+`chunk_id` (a hash of case + position + text) is still computed and stored
+per chunk. It's no longer used for the skip/ingest decision, but it remains
+useful as a stable, content-addressed primary key for that chunk if you ever
+need to look one up directly.
+
+---
+
+## 11. Chunking Strategy: Structured Metadata vs. PDF Judgment Text
+
+This pipeline handles two genuinely different kinds of content, and they are
+deliberately **not** chunked the same way.
+
+### Scraped structured metadata — not chunked at all
+
+Fields scraped directly off the case-law portal (`case_no`, `citation`,
+`topic`, `code`, `detail_url`) are short, atomic key/value data. They are
+attached as Weaviate **properties** on every chunk belonging to that case,
+not run through the chunker. Splitting a value like `"HCA 1/2023"` into
+overlapping character windows would gain nothing and would actively destroy
+the one piece of information it holds. Structured data doesn't need
+windowing; it needs to be filterable and returned intact, which is exactly
+what Weaviate properties (and the `Filter.by_property` exact-match lookup in
+`/chat` for case-number queries) give us.
+
+### PDF judgment text — paragraph-aware windowing
+
+The actual judgment content comes from `fitz`/PyMuPDF's raw text extraction
+of the source PDF (`pdf_to_markdown()` in `scraper.py`). That extraction has
+**no headers, no sections, no markdown structure** — it's continuous prose
+with paragraph breaks marked only by blank/whitespace lines and Windows
+`\r\n` endings. Because there's no structural metadata to chunk *around*
+(no "FACTS" / "JUDGMENT" section headers to split on), the only viable
+strategy is windowing — but the window should respect the one structural
+signal that does exist: paragraph breaks.
+
+`chunk_text()` in `chunker.py`:
+1. Normalizes line endings and collapses whitespace-only lines.
+2. Splits on blank-line boundaries into paragraphs, joining wrapped lines
+   within a paragraph into a single readable line (PDF line wraps are
+   visual, not semantic).
+3. Packs whole paragraphs together up to `chunk_size` (700 chars), so a
+   chunk boundary lands between paragraphs/sentences rather than mid-word.
+4. Falls back to a plain sliding window only for the rare paragraph that
+   exceeds `chunk_size` on its own, since at that point there's no smaller
+   natural boundary left to respect.
+5. Carries a small overlap (100 chars) from the end of one chunk into the
+   next, so a citation shown to the user doesn't lose context right at the
+   seam.
+
+### Why this differs from "chunking a PDF" in the generic sense
+
+A generic PDF chunker often chunks *by page* or preserves layout artifacts
+(headers/footers repeated per page, footnotes, page numbers) because the
+PDF's structure carries meaning (e.g., a manual with numbered sections).
+Here, page boundaries are an artifact of printing, not of the argument's
+structure — a judgment's reasoning routinely spans a page break mid-sentence.
+Chunking by page would reintroduce exactly the kind of arbitrary, meaning-
+blind cut that paragraph-aware windowing is meant to avoid. So instead of
+chunking by page, this pipeline extracts the PDF's text once (flattening
+away the page structure) and then chunks that flattened text by paragraph —
+treating the PDF as a source of prose to reflow, not as a source of
+page-shaped units to preserve.page-shaped units to preserve.
+
+---
+
+## 12. PDF Sourcing and Storage: Local Cache + Google Drive as the Public URL
+
+Each judgment PDF is downloaded once (`pdf_pipeline.py`), then uploaded to a
+shared Google Drive folder (`drive_utils.py`) with `anyone/reader` permission,
+and the resulting `https://drive.google.com/file/d/<id>/view` link — not the
+original SHC portal URL — is what gets stored as `pdf_url` in the per-case
+JSON metadata and, from there, as a Weaviate property on every chunk.
+
+Two reasons for re-hosting rather than pointing directly at the source site:
+
+1. **Stability.** The SHC portal's PDF links are not guaranteed to stay valid
+   indefinitely (session-scoped paths, site restructuring), whereas a Drive
+   file with a fixed ID is a stable citation target for as long as the file
+   exists.
+2. **The task explicitly asks for a public, view-only URL in the metadata**,
+   which Drive's sharing permissions provide directly — the case JSON never
+   needs to touch the SHC site again once the PDF is uploaded.
+
+Before uploading, `upload_pdf_to_drive()` checks whether a file with the same
+name already exists in the target folder and returns its existing URL instead
+of re-uploading — this keeps re-runs (e.g. after a scrape re-detects a case
+that was already processed) from creating duplicate files in Drive.
+
+---
+
+## 13. Chat Endpoint: Retrieval + Grounding Strategy
+
+`/chat` in `app.py` implements a small but deliberate two-path retrieval
+strategy rather than always going straight to vector search:
+
+1. **Exact case-number match.** If the query contains something matching
+   `\d+/\d{4}` (e.g. "68/2013"), it's treated as a literal case-number lookup
+   and answered via `Filter.by_property("case_no")` — an exact metadata
+   filter — instead of semantic search. A case number is an identifier, not
+   a concept; embedding it and hoping the nearest vectors happen to contain
+   the same digits is strictly worse than an exact filter when the user has
+   clearly given you the exact key.
+2. **Semantic search** for everything else: the query is embedded with the
+   same `all-MiniLM-L6-v2` model used at ingestion time and matched via
+   `near_vector` against the top `TOP_K=5` chunks.
+
+Grounding is enforced at the prompt level, not just by "please cite your
+sources": the LLM is explicitly instructed to answer only from the retrieved
+excerpts, told to reply with a fixed refusal string
+(`"I don't have enough information to answer that."`) when the sources don't
+contain the answer, and told not to invent facts. Retrieved chunks are
+deduplicated by `case_code` before being turned into a `citations` list, so a
+case that contributed five chunks to the answer shows up once in the
+citation list, not five times — each citation carries `case_code`, `case_no`,
+`citation`, and the Drive `pdf_url`, so the user can go straight to the
+source PDF.
+
+
+
+## 14. Secrets and Configuration
+
+- Google OAuth credentials (`credentials.json`) and the resulting cached
+  token (`token.json`) are kept out of version control. They must be
+  provisioned per-environment rather than shipped with the repo.
+- Weaviate runs locally with anonymous access enabled
+  (`AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true` in `docker-compose.yml`).
+  This is acceptable for a single-developer local setup but would need an
+  API key and network restriction before running on any shared or
+  internet-reachable host.
+- Model names (embedding model, LLM model), the Weaviate collection name, and
+  the Drive folder ID are currently constants defined at the top of their
+  respective files rather than environment variables. This keeps the code
+  simple for a single-environment project but should move to `.env`/config
+  before there's more than one deployment target (e.g. staging vs prod Drive
+  folders, or swapping the LLM model without editing source).
+
+---
