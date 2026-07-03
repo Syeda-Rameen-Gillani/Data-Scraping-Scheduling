@@ -1,3 +1,26 @@
+# --- Stage 1: scraper & scheduler ---
 requests==2.32.3
 beautifulsoup4==4.12.3
 apscheduler==3.10.4
+
+# --- Stage 2: API service ---
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+
+# --- Stage 2: PDF -> Markdown conversion ---
+pymupdf==1.25.1
+
+# --- Stage 2: Google Drive upload (public PDF URLs) ---
+google-api-python-client==2.157.0
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.1
+
+# --- Stage 2: embeddings + vector DB ---
+sentence-transformers==3.3.1
+weaviate-client==4.9.6
+
+# --- Stage 2: local LLM for grounded chat ---
+ollama==0.4.5
+
+# --- Testing ---
+pytest==8.3.4
