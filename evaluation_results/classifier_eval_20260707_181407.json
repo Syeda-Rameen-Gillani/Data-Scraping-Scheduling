@@ -1,0 +1,95 @@
+{
+  "accuracy": 1.0,
+  "details": [
+    {
+      "question": "What was decided about the cargo aboard the M.V. Miski bound for the Port of Sudan?",
+      "expected": "relevant",
+      "predicted": "relevant"
+    },
+    {
+      "question": "Marhaba Aviation Services sued over dishonored cheques - what was claimed versus what was actually decreed?",
+      "expected": "relevant",
+      "predicted": "relevant"
+    },
+    {
+      "question": "A woman was released from prison after serving how much of a 5-year sentence?",
+      "expected": "relevant",
+      "predicted": "relevant"
+    },
+    {
+      "question": "What amount was sought for short-landed cargo, and under which law?",
+      "expected": "relevant",
+      "predicted": "relevant"
+    },
+    {
+      "question": "Why was a bail application withdrawn in Criminal Bail No. 1254/2017?",
+      "expected": "relevant",
+      "predicted": "relevant"
+    },
+    {
+      "question": "In the compromise decree case dismissed against Defendants No. 4 and 5, who represented the Plaintiff?",
+      "expected": "relevant",
+      "predicted": "relevant"
+    },
+    {
+      "question": "Who pleaded urgency on an execution matter in IInd Appeal No. 68/2013?",
+      "expected": "relevant",
+      "predicted": "relevant"
+    },
+    {
+      "question": "What is the case number for the M.V. Miski cargo-release dispute?",
+      "expected": "relevant",
+      "predicted": "relevant"
+    },
+    {
+      "question": "What security amount had to be furnished before the M.V. Miski cargo could be released?",
+      "expected": "relevant",
+      "predicted": "relevant"
+    },
+    {
+      "question": "In the 2009 compromise case, how much did defendant No. 2 deposit for the ship's release, and how much did the Nazir separately hold in rupees?",
+      "expected": "relevant",
+      "predicted": "relevant"
+    },
+    {
+      "question": "What's the capital of France?",
+      "expected": "irrelevant",
+      "predicted": "irrelevant"
+    },
+    {
+      "question": "Can you recommend a good biryani recipe?",
+      "expected": "irrelevant",
+      "predicted": "irrelevant"
+    },
+    {
+      "question": "How do I reset my email password?",
+      "expected": "irrelevant",
+      "predicted": "irrelevant"
+    },
+    {
+      "question": "What are the requirements for filing a divorce in California?",
+      "expected": "irrelevant",
+      "predicted": "irrelevant"
+    },
+    {
+      "question": "Summarize a recent Lahore High Court inheritance ruling.",
+      "expected": "irrelevant",
+      "predicted": "irrelevant"
+    },
+    {
+      "question": "What case involved money being paid to the Nazir of the court?",
+      "expected": "relevant",
+      "predicted": "relevant"
+    },
+    {
+      "question": "Tell me about a case where security had to be furnished to release a vessel or cargo.",
+      "expected": "relevant",
+      "predicted": "relevant"
+    },
+    {
+      "question": "What happened in the admiralty case involving a cargo shortage?",
+      "expected": "relevant",
+      "predicted": "relevant"
+    }
+  ]
+}
