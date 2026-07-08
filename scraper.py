@@ -3,11 +3,17 @@ import logging
 import requests
 from bs4 import BeautifulSoup
 from urllib.robotparser import RobotFileParser
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 import os
+import json
 import fitz
 session = requests.Session()
-from drive_utils import upload_pdf_to_drive
+
+import s3_utils
+from metadata_enrichment import build_full_metadata
+from external_api import upsert_judgment, ApiAuthError
+
+COURT_NAME = "Sindh High Court"
 
 os.makedirs("logs", exist_ok=True)
 os.makedirs("pdfs", exist_ok=True)
@@ -22,6 +28,30 @@ logging.basicConfig(
     ],
 )
 log = logging.getLogger(__name__)
+
+
+def get_leaf(pdf_url: str) -> str:
+    """
+    Section 3: <leaf> is the leaf filename of the source PDF URL, without
+    extension. E.g. ".../2026SHC153.pdf" -> "2026SHC153".
+    """
+    path = urlparse(pdf_url).path
+    filename = os.path.basename(path)
+    return os.path.splitext(filename)[0]
+
+
+def build_filenames(leaf: str) -> dict:
+    """
+    Returns the three filenames (with court prefix) for a given <leaf>,
+    per Section 3's naming convention.
+    """
+    stem = f"{COURT_NAME} - {leaf}"
+    return {
+        "pdf": f"{stem}.pdf",
+        "md": f"{stem}.md",
+        "json": f"{stem}.json",
+        "stem": stem,
+    }
 
 BASE_URL   = "https://caselaw.shc.gov.pk"
 AJAX_URL   = f"{BASE_URL}/caselaw/AJAX_PUBLIC.php"
@@ -291,9 +321,9 @@ def open_view_page(url):
 
     print("PDF saved!")
     
-def download_pdf(pdf_url, code):
+def download_pdf(pdf_url, pdf_filename):
     if not pdf_url:
-        return
+        return None
 
     try:
         if "/caselaw/" not in pdf_url:
@@ -305,9 +335,9 @@ def download_pdf(pdf_url, code):
         r = session.get(pdf_url, headers=HEADERS, timeout=60)
         if "application/pdf" not in r.headers.get("Content-Type", ""):
             print("Skipping non-PDF:", pdf_url)
-            return
+            return None
 
-        path = os.path.join("pdfs", f"{code}.pdf")
+        path = os.path.join("pdfs", pdf_filename)
 
         with open(path, "wb") as f:
             f.write(r.content)
@@ -317,10 +347,11 @@ def download_pdf(pdf_url, code):
 
     except Exception as e:
         print("Failed:", pdf_url, e)
+        return None
 
 
 
-def pdf_to_markdown(pdf_path, code):
+def pdf_to_markdown(pdf_path, md_filename):
     doc = fitz.open(pdf_path)
 
     markdown = ""
@@ -329,70 +360,223 @@ def pdf_to_markdown(pdf_path, code):
         markdown += page.get_text()
         markdown += "\n\n"
 
-    output_path = os.path.join("markdown", f"{code}.md")
+    output_path = os.path.join("markdown", md_filename)
 
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(markdown)
 
     print("Markdown saved:", output_path)
 
-    return output_path
+    return output_path, markdown
 
-import json
-
-def save_metadata(case, pdf_path, md_path, drive_url):
-    code = case.get("code") or "unknown"
-
-    data = {
-        "code": code,
-        "citation": case.get("citation"),
-        "topic": case.get("topic"),
-        "case_no": case.get("case_no"),
-        "detail_url": case.get("detail_url"),
-        "pdf_url": drive_url,
-        "local_pdf": pdf_path,
-        "local_markdown": md_path,
-    }
-
-    os.makedirs("json", exist_ok=True)
-
-    json_path = os.path.join("json", f"{code}.json")
-
+def write_json(json_path: str, metadata: dict) -> None:
     with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
+        json.dump(metadata, f, indent=2, ensure_ascii=False)
 
-    print("JSON saved:", json_path)
 
-    return json_path
-
-def process_case(case: dict):
+def process_new_case(case: dict, leaf: str, filenames: dict) -> dict | None:
     """
-    Given a single scraped case record, download its PDF, upload it to
-    Drive, convert it to markdown, and save the combined metadata JSON.
-    Returns the json_path on success, or None if there was no PDF to process.
+    Full pipeline for a judgment we have never seen before:
+    download -> extract -> enrich -> upload to S3 -> POST to API.
+
+    Returns the state entry to store for this judgment, or None on failure.
     """
     pdf_url = case.get("pdf_url")
-    code = case.get("code") or "unknown"
-
     if not pdf_url:
+        log.warning("No pdf_url for case %s — skipping.", case.get("code"))
         return None
 
-    pdf_path = download_pdf(pdf_url, code)
+    pdf_path = download_pdf(pdf_url, filenames["pdf"])
     if not pdf_path:
+        log.error("PDF download failed for %s — skipping.", filenames["pdf"])
         return None
 
-    drive_url = upload_pdf_to_drive(pdf_path)
-    md_path = pdf_to_markdown(pdf_path, code)
-    json_path = save_metadata(case, pdf_path, md_path, drive_url)
+    md_path, markdown_text = pdf_to_markdown(pdf_path, filenames["md"])
 
-    return json_path
+    metadata = build_full_metadata(
+        case=case,
+        pdf_filename=filenames["pdf"],
+        markdown_text=markdown_text,
+        reference_url=pdf_url,
+    )
+
+    json_path = os.path.join("json", filenames["json"])
+    os.makedirs("json", exist_ok=True)
+    write_json(json_path, metadata)
+
+    # Section 9 — upload PDF, MD, JSON to S3 (idempotent; skip if already there).
+    s3_utils.upload_file(pdf_path, "pdfs")
+    s3_utils.upload_file(md_path, "markdown")
+    s3_utils.upload_file(json_path, "metadata")
+
+    # Section 10.5 — only call the API AFTER S3 upload succeeds.
+    try:
+        result = upsert_judgment(metadata, known_to_api=False)
+    except ApiAuthError as exc:
+        log.error("API auth failed (%s) — halting run.", exc)
+        raise
+
+    if not result.success:
+        log.error(
+            "API upsert failed for %s (status=%s, action=%s) — "
+            "not marking as processed; will retry next run.",
+            filenames["stem"], result.status_code, result.action,
+        )
+        return None
+
+    log.info("Processed new judgment: %s (%s)", filenames["stem"], result.action)
+
+    return {
+        "fileName": filenames["stem"],
+        "citation": case.get("citation"),
+    }
+
+
+def process_citation_update(case: dict, leaf: str, filenames: dict, state_entry: dict) -> dict | None:
+    """
+    Section 11.2 — citation appeared/changed for an already-processed judgment.
+    Does NOT re-download the PDF or re-extract the markdown; only rebuilds
+    and re-uploads the JSON, then PUTs the update to the API.
+    """
+    md_path = os.path.join("markdown", filenames["md"])
+    if not os.path.exists(md_path):
+        log.warning(
+            "Citation changed for %s but local markdown is missing — "
+            "cannot rebuild metadata without re-processing. Skipping.",
+            filenames["stem"],
+        )
+        return state_entry
+
+    with open(md_path, encoding="utf-8") as f:
+        markdown_text = f.read()
+
+    metadata = build_full_metadata(
+        case=case,
+        pdf_filename=filenames["pdf"],
+        markdown_text=markdown_text,
+        reference_url=case.get("pdf_url"),
+    )
+
+    json_path = os.path.join("json", filenames["json"])
+    os.makedirs("json", exist_ok=True)
+    write_json(json_path, metadata)
+
+    # Section 11.2 step 3 — this is the one case where we MUST overwrite
+    # an existing S3 key, bypassing the normal idempotency skip.
+    s3_utils.upload_file(json_path, "metadata", overwrite=True)
+
+    try:
+        result = upsert_judgment(metadata, known_to_api=True)
+    except ApiAuthError as exc:
+        log.error("API auth failed (%s) — halting run.", exc)
+        raise
+
+    if not result.success:
+        log.error(
+            "Citation-update API call failed for %s (status=%s) — "
+            "keeping old citation in state; will retry next run.",
+            filenames["stem"], result.status_code,
+        )
+        return state_entry
+
+    log.info("Citation updated for %s -> %s", filenames["stem"], case.get("citation"))
+
+    return {
+        "fileName": filenames["stem"],
+        "citation": case.get("citation"),
+    }
+
+
+def process_case(case: dict, state: dict) -> None:
+    """
+    Section 11.1 — decide which path a case takes on this run: new judgment,
+    citation update, or no-op (already processed, citation unchanged).
+    Mutates `state` in place.
+    """
+    pdf_url = case.get("pdf_url")
+    identifier = case.get("code")
+
+    if not identifier:
+        log.warning("Case missing 'code' (identifier) — skipping: %s", case)
+        return
+    if not pdf_url:
+        log.info("No PDF attached for case %s (%s) — skipping.", identifier, case.get("case_no"))
+        return
+
+    leaf = get_leaf(pdf_url)
+    filenames = build_filenames(leaf)
+
+    existing = state.get(identifier)
+
+    if existing is None:
+        entry = process_new_case(case, leaf, filenames)
+        if entry:
+            state[identifier] = entry
+        return
+
+    current_citation = (case.get("citation") or "").strip() or None
+    stored_citation = existing.get("citation")
+
+    if current_citation == stored_citation:
+        log.info("No change for %s — skipping.", filenames["stem"])
+        return
+
+    # Section 11.4 — citation regression: had one, now listing shows none.
+    # Log and leave existing data alone rather than blanking a valid citation.
+    if stored_citation and not current_citation:
+        log.warning(
+            "Citation regression detected for %s (was %s, listing now empty) — "
+            "leaving existing data untouched.",
+            filenames["stem"], stored_citation,
+        )
+        return
+
+    entry = process_citation_update(case, leaf, filenames, existing)
+    if entry:
+        state[identifier] = entry
+
+
+def run():
+    """
+    Full re-runnable sync: download state -> scrape -> process each case,
+    persisting state after every judgment (not just at the end) so a
+    long run can be safely interrupted (Ctrl+C) or crash partway through
+    without losing already-completed work.
+    """
+    state = s3_utils.download_state_file()
+    log.info("Loaded state: %d judgment(s) previously processed.", len(state))
+
+    cases = scrape_cases(max_pages=1)
+    log.info("Total cases fetched: %d", len(cases))
+
+    processed_count = 0
+
+    try:
+        for case in cases:
+            before = dict(state)
+            process_case(case, state)
+
+            if state != before:
+                s3_utils.upload_state_file(state)
+                processed_count += 1
+                log.info(
+                    "State saved after judgment %d/%d.",
+                    processed_count, len(cases),
+                )
+    except KeyboardInterrupt:
+        log.warning(
+            "Interrupted by user — state is up to date as of the last "
+            "completed judgment. Safe to re-run; already-processed "
+            "judgments will be skipped."
+        )
+        raise
+    finally:
+        # Belt-and-suspenders: also save on any other exception, in case
+        # `state` was mutated after the last per-judgment save but before
+        # the exception was raised.
+        s3_utils.upload_state_file(state)
+        log.info("Final state uploaded: %d judgment(s) now tracked.", len(state))
 
 
 if __name__ == "__main__":
-
-    cases = scrape_cases(max_pages=1)
-
-    print(f"Total cases fetched: {len(cases)}")
-
-    for case in cases:
-        process_case(case)
+    run()

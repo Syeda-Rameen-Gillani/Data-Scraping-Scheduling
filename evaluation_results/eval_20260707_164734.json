@@ -1,0 +1,255 @@
+{
+  "timestamp": "20260707_164734",
+  "baseline": {
+    "label": "baseline (vector-only, top_k=5)",
+    "hit_rate": 1.0,
+    "mrr": 1.0,
+    "n": 13,
+    "details": [
+      {
+        "question": "What was decided about the cargo aboard the M.V. Miski bound for the Port of Sudan?",
+        "expected": "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "Marhaba Aviation Services sued over dishonored cheques - what was claimed versus what was actually decreed?",
+        "expected": "Sindh High Court - MTE0ODk4Y2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MTE0ODk4Y2Ztcy1kYzgz",
+          "Sindh High Court - MTQwMTQyY2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "A woman was released from prison after serving how much of a 5-year sentence?",
+        "expected": "Sindh High Court - MTY1OTBjZm1zLWRjODM=",
+        "retrieved": [
+          "Sindh High Court - MTY1OTBjZm1zLWRjODM=",
+          "Sindh High Court - MTQwMTQyY2Ztcy1kYzgz",
+          "Sindh High Court - MTIwMTE2Y2Ztcy1kYzgz",
+          "Sindh High Court - MTE0ODk4Y2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "What amount was sought for short-landed cargo, and under which law?",
+        "expected": "Sindh High Court - MTU5OTc0Y2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MTU5OTc0Y2Ztcy1kYzgz",
+          "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz",
+          "Sindh High Court - MTQwMTQyY2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "Why was a bail application withdrawn in Criminal Bail No. 1254/2017?",
+        "expected": "Sindh High Court - MTIwOTU3Y2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MTIwOTU3Y2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "In the compromise decree case dismissed against Defendants No. 4 and 5, who represented the Plaintiff?",
+        "expected": "Sindh High Court - MjI3ODA3Y2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MjI3ODA3Y2Ztcy1kYzgz",
+          "Sindh High Court - MTIwMTE2Y2Ztcy1kYzgz",
+          "Sindh High Court - MTE0ODk4Y2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "Who pleaded urgency on an execution matter in IInd Appeal No. 68/2013?",
+        "expected": "Sindh High Court - MTAwNjYxY2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MTAwNjYxY2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "What is the case number for the M.V. Miski cargo-release dispute?",
+        "expected": "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "What security amount had to be furnished before the M.V. Miski cargo could be released?",
+        "expected": "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "In the 2009 compromise case, how much did defendant No. 2 deposit for the ship's release, and how much did the Nazir separately hold in rupees?",
+        "expected": "Sindh High Court - MTIwMTE2Y2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MTIwMTE2Y2Ztcy1kYzgz",
+          "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz",
+          "Sindh High Court - MTU5OTc0Y2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "What case involved money being paid to the Nazir of the court?",
+        "expected": "Sindh High Court - MTIwMTE2Y2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MTIwMTE2Y2Ztcy1kYzgz",
+          "Sindh High Court - MTE0ODk4Y2Ztcy1kYzgz",
+          "Sindh High Court - MTQwMTQyY2Ztcy1kYzgz",
+          "Sindh High Court - MTU5OTc0Y2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "Tell me about a case where security had to be furnished to release a vessel or cargo.",
+        "expected": "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz",
+          "Sindh High Court - MTU5OTc0Y2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "What happened in the admiralty case involving a cargo shortage?",
+        "expected": "Sindh High Court - MTU5OTc0Y2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MTU5OTc0Y2Ztcy1kYzgz",
+          "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz",
+          "Sindh High Court - MjgyMDc1Y2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      }
+    ]
+  },
+  "reranked": {
+    "label": "vector + cross-encoder rerank (candidate_pool=15, top_k=5)",
+    "hit_rate": 1.0,
+    "mrr": 1.0,
+    "n": 13,
+    "details": [
+      {
+        "question": "What was decided about the cargo aboard the M.V. Miski bound for the Port of Sudan?",
+        "expected": "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "Marhaba Aviation Services sued over dishonored cheques - what was claimed versus what was actually decreed?",
+        "expected": "Sindh High Court - MTE0ODk4Y2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MTE0ODk4Y2Ztcy1kYzgz",
+          "Sindh High Court - MTQwMTQyY2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "A woman was released from prison after serving how much of a 5-year sentence?",
+        "expected": "Sindh High Court - MTY1OTBjZm1zLWRjODM=",
+        "retrieved": [
+          "Sindh High Court - MTY1OTBjZm1zLWRjODM=",
+          "Sindh High Court - MTIwMTE2Y2Ztcy1kYzgz",
+          "Sindh High Court - MTQwMTQyY2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "What amount was sought for short-landed cargo, and under which law?",
+        "expected": "Sindh High Court - MTU5OTc0Y2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MTU5OTc0Y2Ztcy1kYzgz",
+          "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "Why was a bail application withdrawn in Criminal Bail No. 1254/2017?",
+        "expected": "Sindh High Court - MTIwOTU3Y2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MTIwOTU3Y2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "In the compromise decree case dismissed against Defendants No. 4 and 5, who represented the Plaintiff?",
+        "expected": "Sindh High Court - MjI3ODA3Y2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MjI3ODA3Y2Ztcy1kYzgz",
+          "Sindh High Court - MTIwMTE2Y2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "Who pleaded urgency on an execution matter in IInd Appeal No. 68/2013?",
+        "expected": "Sindh High Court - MTAwNjYxY2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MTAwNjYxY2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "What is the case number for the M.V. Miski cargo-release dispute?",
+        "expected": "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz",
+          "Sindh High Court - MTQwMTQyY2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "What security amount had to be furnished before the M.V. Miski cargo could be released?",
+        "expected": "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "In the 2009 compromise case, how much did defendant No. 2 deposit for the ship's release, and how much did the Nazir separately hold in rupees?",
+        "expected": "Sindh High Court - MTIwMTE2Y2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MTIwMTE2Y2Ztcy1kYzgz",
+          "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "What case involved money being paid to the Nazir of the court?",
+        "expected": "Sindh High Court - MTIwMTE2Y2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MTIwMTE2Y2Ztcy1kYzgz",
+          "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz",
+          "Sindh High Court - MTU5OTc0Y2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "Tell me about a case where security had to be furnished to release a vessel or cargo.",
+        "expected": "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz",
+          "Sindh High Court - MTU5OTc0Y2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      },
+      {
+        "question": "What happened in the admiralty case involving a cargo shortage?",
+        "expected": "Sindh High Court - MTU5OTc0Y2Ztcy1kYzgz",
+        "retrieved": [
+          "Sindh High Court - MTU5OTc0Y2Ztcy1kYzgz",
+          "Sindh High Court - MjgyMDc1Y2Ztcy1kYzgz",
+          "Sindh High Court - MTI0NjQwY2Ztcy1kYzgz"
+        ],
+        "rank": 1
+      }
+    ]
+  }
+}

@@ -9,27 +9,33 @@ that answers questions with citations back to the source case.
 
 ## Project Structure
 
-```
 .
-├── scraper.py              # HTTP requests, HTML parsing, pagination, PDF/MD/JSON pipeline
-├── storage.py               # Upsert logic, master file, run snapshots
-├── scheduler.py              # APScheduler entry point: scrape -> process -> ingest, daily
-├── pdf_pipeline.py           # Downloads judgment PDFs
-├── drive_utils.py            # Uploads PDFs to Google Drive, returns public view-only URL
-├── chunker.py                 # Paragraph-aware chunking for judgment text
-├── ingestion_pipeline.py       # Incremental embed + upsert into Weaviate
-├── weaviate_client.py           # Weaviate connection helper
-├── create_collection.py          # One-time Weaviate schema setup
-├── app.py                         # FastAPI service: /health, /chat (RAG endpoint)
-├── docker-compose.yml               # Local Weaviate instance
-├── test_scraper.py                   # Automated tests (no network required)
-├── DECISIONS.md                       # Full design rationale
-├── logs/                                # Auto-created
-├── output/                               # Auto-created: master JSON, run snapshots, ingestion manifest
-├── json/, markdown/, pdfs/                 # Per-case artifacts (raw, converted, source)
-```
-
----
+├── scraper.py
+├── storage.py
+├── scheduler.py
+├── pdf_pipeline.py
+├── s3_utils.py                  # Uploads PDFs to Amazon S3 and returns the object URL
+├── chunker.py
+├── ingestion_pipeline.py
+├── weaviate_client.py
+├── create_collection.py
+├── retrieval.py                 # Vector, hybrid and reranked retrieval
+├── reranking.py                 # Cross-encoder reranker
+├── classification.py            # Query classifier
+├── generation.py                # LLM answer generation
+├── evaluate.py                  # Retrieval evaluation
+├── evaluate_classification.py   # Query-classification evaluation
+├── eval_set.py                  # Self-authored evaluation dataset
+├── app.py                       # FastAPI API
+├── docker-compose.yml
+├── test_scraper.py
+├── DECISIONS.md
+├── evaluation_results/          # Evaluation outputs
+├── logs/
+├── output/
+├── json/
+├── markdown/
+└── pdfs/
 
 ## Requirements
 
@@ -50,6 +56,25 @@ pip install -r requirements.txt
 
 
 ## Running the pipeline
+### Manual one-off scrape + process + ingest
+
+```bash
+python -c "
+from scraper import scrape_cases, process_case
+from storage import upsert
+
+summary = upsert(scrape_cases())
+
+for case in summary['changed_records']:
+    process_case(case)
+
+print(summary)
+"
+
+python ingestion_pipeline.py
+```
+
+Only new or modified cases are embedded into Weaviate using the incremental ingestion manifest.
 
 ### Manual one-off scrape + process + ingest
 
@@ -82,53 +107,179 @@ no second server to keep running.
 
 ### Serving the API
 
+### Serving the API
+
 ```bash
 uvicorn app:app --reload
 ```
 
-- `GET /health` — liveness check.
-- `GET /chat?q=...` — ask a question about the ingested case law. Embeds the
-  query (or detects a literal case number like `68/2013` and does an exact
-  metadata filter instead of semantic search), retrieves the top-5 matching
-  chunks from Weaviate, and asks a local LLM (Ollama) to answer using only
-  those chunks. Returns the answer plus a `citations` list
-  (`case_code`, `case_no`, `citation`, `pdf_url`) pointing back to the source
-  judgment's Google Drive PDF.
+Available endpoints:
 
-  ```bash
-  curl "http://localhost:8000/chat?q=What happened in Adm. Suit 1088/2005?"
-  ```
+- `GET /health`
+
+  Returns the service health status.
+
+- `GET /chat?q=...`
+
+  Performs the complete RAG pipeline:
+
+  1. Query classification
+  2. Exact case-number lookup (when applicable)
+  3. Vector retrieval
+  4. LLM answer generation
+
+  The classifier first labels each query as:
+
+  - relevant
+  - other (legal but outside this corpus)
+  - irrelevant
+
+  Queries classified as `other` or `irrelevant` are declined without running retrieval.
+
+  Example:
+
+```bash
+curl "http://localhost:8000/chat?q=What happened in Adm. Suit 1088/2005?"
+```
+
+## Advanced Retrieval
+
+Stage 3 extends the retrieval pipeline with three independent retrieval improvements.
+
+### Vector Search
+
+Sentence-transformers embeddings (`all-MiniLM-L6-v2`) are used to retrieve the most semantically similar judgment chunks.
 
 ---
 
-## Running the Tests
+### Exact Metadata Lookup
+
+Queries containing a case number (e.g. `68/2013`) bypass semantic retrieval entirely and perform an exact metadata lookup.
+
+---
+
+### Cross-Encoder Reranking
+
+The top vector-search candidates are reranked using a cross-encoder model before selecting the final Top-K results.
+
+This improves ordering when several retrieved chunks are semantically similar.
+
+---
+
+### Hybrid Search
+
+Hybrid retrieval combines
+
+- BM25 keyword matching
+- semantic vector similarity
+
+using Weaviate's native hybrid search.
+
+Both retrieval methods can be evaluated independently.
+
+---
+
+### Query Classification
+
+Incoming questions are classified as
+
+- relevant
+- other
+- irrelevant
+
+before retrieval.
+
+Off-domain questions are rejected early instead of wasting retrieval and LLM inference.
+
+
+## Evaluation
+
+A manually authored evaluation dataset (`eval_set.py`) containing both in-domain and off-domain questions is included.
+
+Evaluation scripts:
+
+```bash
+python evaluate.py
+```
+
+Evaluates:
+
+- baseline vector retrieval
+- reranked retrieval
+- hybrid retrieval
+
+and reports:
+
+- Hit Rate@K
+- Mean Reciprocal Rank (MRR)
+
+---
+
+```bash
+python evaluate_classification.py
+```
+
+Evaluates the query classifier and reports:
+
+- Accuracy
+- False Positives
+- False Negatives
+- Per-question predictions
+
+Evaluation outputs are automatically written to
+
+```
+evaluation_results/
+```
+
+
+## Running Tests
+
+Scraper tests:
 
 ```bash
 pytest test_scraper.py -v
 ```
 
-All 40 tests run offline. See `DECISIONS.md` §8 for coverage details.
-(Ingestion and chat endpoint currently only have manual/ad-hoc verification —
-`debug_retrieval.py` is a standalone diagnostic that bypasses the LLM to
-inspect raw retrieval results; there's no automated test coverage yet for
-`chunker.py` or `ingestion_pipeline.py`.)
+Retrieval evaluation:
 
----
+```bash
+python evaluate.py
+```
+
+Classification evaluation:
+
+```bash
+python evaluate_classification.py
+```
+
+The retrieval evaluation reports:
+
+- Hit Rate
+- MRR
+
+The classification evaluation reports:
+
+- Accuracy
+- False Positives
+- False Negatives
 
 ## Output layout
 
-```
 output/
-  cases_master.json            # full deduplicated scraped dataset
-  runs/run_<timestamp>.json    # per-run snapshot
-  ingestion_manifest.json      # {case_code: content_hash} — drives incremental ingestion
-json/<code>.json               # per-case metadata: citation, case_no, pdf_url (Drive), local paths
-markdown/<code>.md             # PDF text extracted via PyMuPDF
-pdfs/<code>.pdf                # locally cached source PDF
-logs/scraper.log, scheduler.log
-```
+    cases_master.json
+    runs/
+    ingestion_manifest.json
 
----
+json/
+markdown/
+pdfs/
+
+evaluation_results/
+    eval_<timestamp>.json
+    classifier_eval_<timestamp>.json
+
+logs/
 
 ## Environment variables
 
@@ -140,44 +291,88 @@ cp .env.example .env
 
 | Variable | Purpose | Required? |
 |---|---|---|
-| `DRIVE_FOLDER_ID` | Google Drive folder that judgment PDFs get uploaded to | Yes — no default |
-| `EMBEDDING_MODEL` | Sentence-transformers model used for both ingestion and query embedding | No — defaults to `all-MiniLM-L6-v2` |
-| `LLM_MODEL` | Ollama model used to generate chat answers | No — defaults to `llama3.2:3b` |
-| `WEAVIATE_COLLECTION` | Weaviate collection name | No — defaults to `CaseChunk` |
-| `TOP_K` | Number of chunks retrieved per chat query | No — defaults to `5` |
+| Variable                    | Purpose                                                                       | Required?                           |
+| --------------------------- | ----------------------------------------------------------------------------- | ----------------------------------- |
+| `AWS_ACCESS_KEY_ID`         | AWS access key used to authenticate with Amazon S3                            | Yes                                 |
+| `AWS_SECRET_ACCESS_KEY`     | AWS secret access key                                                         | Yes                                 |
+| `AWS_REGION`                | AWS region where the S3 bucket is hosted                                      | Yes                                 |
+| `S3_BUCKET_NAME`            | Amazon S3 bucket used to store downloaded judgment PDFs                       | Yes                                 |
+| `EXTERNAL_JUDGMENT_API_KEY` | API key used to access the external judgment metadata service (if applicable) | Yes                                 |
+| `EMBEDDING_MODEL`           | Sentence Transformers model used for document and query embeddings            | No (defaults to `all-MiniLM-L6-v2`) |
+| `LLM_MODEL`                 | Ollama model used for answer generation                                       | No (defaults to `llama3.2:3b`)      |
+| `WEAVIATE_COLLECTION`       | Weaviate collection name                                                      | No (defaults to `CaseChunk`)        |
+| `TOP_K`                     | Number of retrieved chunks returned for each query                            | No (defaults to `5`)                |
 
-> `EMBEDDING_MODEL` must be the same value everywhere — it's used to embed
-> chunks at ingestion time and to embed the query at chat time. If they ever
-> diverge, semantic search silently breaks (vectors from different models
-> aren't comparable).
 
 ## Secrets & Configuration
 
-- `credentials.json` (Google OAuth client secret), `token.json` (cached
-  user token), and `.env` (your real config values) are all git-ignored and
-  must never be committed.
-- Weaviate currently runs with anonymous access enabled for local dev
-  (`docker-compose.yml`) — fine for a laptop, not for a shared/production host.
+The following files and credentials should never be committed:
 
-  ## One-time setup
+- `.env`
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+- `EXTERNAL_JUDGMENT_API_KEY`
 
-Before anything else, set up your `.env` file (see [Environment variables](#environment-variables) below) — the steps here depend on it.
+Judgment PDFs are stored in Amazon S3. AWS credentials are loaded from environment variables.
 
-1. **Weaviate** (local, no auth — dev only):
+Weaviate currently runs with anonymous access enabled for local development only.
+
+  ## One-time Setup
+
+Before running the project, configure your `.env` file with the required AWS credentials and application settings.
+
+1. **Start Weaviate**
+
 ```bash
-   docker compose up -d
-   python create_collection.py    # creates the Weaviate collection named in WEAVIATE_COLLECTION
+docker compose up -d
+python create_collection.py
 ```
-2. **Google Drive OAuth**: place your OAuth client secret at `credentials.json`
-   (never commit this file — see [Secrets](#secrets--configuration) below).
-   The first PDF upload will open a browser consent flow and cache a
-   `token.json` for subsequent runs.
-3. **Ollama**: `ollama pull llama3.2:3b` (or whatever model you set as
-   `LLM_MODEL` in `.env`).
+
+2. **Configure Amazon S3**
+
+Add the following variables to your `.env` file:
+
+```
+AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY
+AWS_REGION
+S3_BUCKET_NAME
+```
+
+Downloaded judgment PDFs will automatically be uploaded to the configured Amazon S3 bucket.
+
+3. **Configure the External Judgment API**
+
+Add:
+
+```
+EXTERNAL_JUDGMENT_API_KEY
+```
+
+to your `.env` file if required by the metadata service.
+
+4. **Install Ollama**
+
+```bash
+ollama pull llama3.2:3b
+```
+
+(or whichever model you configured as `LLM_MODEL`.)
 
 ---
 
 ## Design Decisions
 
-See [DECISIONS.md](DECISIONS.md) for the full rationale behind the scraping
-schema, incremental ingestion strategy, chunking approach, and chat/RAG design.
+See `DECISIONS.md` for detailed rationale covering:
+
+- scraper architecture
+- metadata extraction
+- incremental ingestion
+- chunking strategy
+- vector retrieval
+- cross-encoder reranking
+- hybrid retrieval
+- query classification
+- evaluation methodology
+- observed failure modes
+- lessons learned
