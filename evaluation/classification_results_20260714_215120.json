@@ -1,0 +1,205 @@
+{
+  "timestamp": "20260714_215120",
+  "questions": 31,
+  "relevant_queries": 26,
+  "irrelevant_queries": 5,
+  "accuracy": 1.0,
+  "irrelevant_query_rejection_rate": 1.0,
+  "relevant_query_false_positive_rate": 0.0,
+  "confusion_matrix": {
+    "true_positive": 26,
+    "false_positive": 0,
+    "true_negative": 5,
+    "false_negative": 0
+  },
+  "false_positives": [],
+  "false_negatives": [],
+  "details": [
+    {
+      "question": "What was decided about the cargo aboard the M.V. Miski bound for the Port of Sudan?",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "Marhaba Aviation Services sued over dishonored cheques - what was claimed versus what was actually decreed?",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "A woman was released from prison after serving how much of a 5-year sentence?",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "What amount was sought for short-landed cargo, and under which law?",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "Why was a bail application withdrawn in Criminal Bail No. 1254/2017?",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "In the compromise decree case dismissed against Defendants No. 4 and 5, who represented the Plaintiff?",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "Who pleaded urgency on an execution matter in IInd Appeal No. 68/2013?",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "What is the case number for the M.V. Miski cargo-release dispute?",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "What security amount had to be furnished before the M.V. Miski cargo could be released?",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "In the 2009 compromise case, how much did defendant No. 2 deposit for the ship's release, and how much did the Nazir separately hold in rupees?",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "What's the capital of France?",
+      "expected_label": "irrelevant",
+      "predicted_label": "irrelevant",
+      "correct": true
+    },
+    {
+      "question": "Can you recommend a good biryani recipe?",
+      "expected_label": "irrelevant",
+      "predicted_label": "irrelevant",
+      "correct": true
+    },
+    {
+      "question": "How do I reset my email password?",
+      "expected_label": "irrelevant",
+      "predicted_label": "other",
+      "correct": true
+    },
+    {
+      "question": "What are the requirements for filing a divorce in California?",
+      "expected_label": "irrelevant",
+      "predicted_label": "other",
+      "correct": true
+    },
+    {
+      "question": "Summarize a recent Lahore High Court inheritance ruling.",
+      "expected_label": "irrelevant",
+      "predicted_label": "other",
+      "correct": true
+    },
+    {
+      "question": "What case involved money being paid to the Nazir of the court?",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "Tell me about a case where security had to be furnished to release a vessel or cargo.",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "What happened in the admiralty case involving a cargo shortage?",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "Can you find the judgment reported as 2026 SHC 87?",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "Show me recent cases decided by Mr. Justice Aqeel Ahmed Abbasi.",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "Find cases on Article 199 of the Constitution.",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "Find the case Marhaba Aviation Services vs Real Air Travel.",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "What happened with the vessel M.V. NAVIOS VENUS regarding a cargo shortage and arrest order?",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "What happened in the case involving the vessel M.V. Yasa Aysen and a time charter dispute with Global Bulk International FZE?",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "Which admiralty case was partly decreed for US Dollars-120,710.6 involving an unseaworthy vessel and dishonored cheques?",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "A woman was granted early release from custody, having completed only a fraction of her original prison term -- what were the circumstances?",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "Why did a shipping company's lawsuit get dismissed over a dispute about who had the proper authority to file it on the company's behalf?",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "Which admiralty case ended when the two sides worked out a private deal, causing the vessel's arrest to be lifted?",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "Which M.V. Miski case involved seafarers claiming unpaid crew wages and repatriation expenses?",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "Which M.V. Miski case awarded the plaintiff $860,500 for damage and breach of contract, represented by Mr. Abdul Razzaq, Advocate?",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    },
+    {
+      "question": "Which M.V. Miski case involved a Gulf bank enforcing a foreign court's judgment to recover a loan?",
+      "expected_label": "relevant",
+      "predicted_label": "relevant",
+      "correct": true
+    }
+  ]
+}
