@@ -1,22 +1,22 @@
 """
 evaluate.py
 
-Evaluation harness for Stage 3. Runs the self-authored eval set (eval_set.py)
+Evaluation harness for Stage 3/4. Runs the self-authored eval set (eval_set.py)
 against the current retrieval pipeline and reports Hit Rate and MRR, so that
-reranking/hybrid search can each be measured with a real before/after number
-rather than a subjective impression.
+keyword/reranking/hybrid search can each be measured with a real before/after
+number rather than a subjective impression.
 
-Deliberately calls retrieval.retrieve() directly rather than the /chat
+Deliberately calls retrieval functions directly rather than the /chat
 endpoint -- the LLM generation step (Ollama) is the slow, non-deterministic
-part and isn't what reranking/hybrid search actually change. Bypassing it
+part and isn't what these retrieval strategies actually change. Bypassing it
 keeps a full eval run to a few seconds instead of ~15-30 minutes.
 """
-
+import time
 import json
 from datetime import datetime
 
 from eval_set import EVAL_SET
-from retrieval import retrieve, retrieve_reranked, retrieve_hybrid
+from retrieval import retrieve, retrieve_reranked, retrieve_hybrid, retrieve_keyword
 
 TOP_K = 5
 
@@ -46,17 +46,25 @@ def evaluate(label: str = "", retrieve_fn=retrieve, top_k: int = TOP_K, verbose:
     """
     retrieval_questions = [q for q in EVAL_SET if q.get("expected_file_name")]
 
-    hits = 0
+    hits = 0                 #Hit Rate @K / Precision@5
+    top1_hits = 0             # Precision@1
     reciprocal_ranks = []
+    latencies = []
     details = []
 
     for item in retrieval_questions:
+        start = time.perf_counter()
         ranked = get_ranked_file_names(item["question"], retrieve_fn=retrieve_fn, top_k=top_k)
+        elapsed_ms = (time.perf_counter() - start) * 1000
+        latencies.append(elapsed_ms)
         expected = item["expected_file_name"]
 
         if expected in ranked:
             rank = ranked.index(expected) + 1
             hits += 1
+            if rank == 1:
+                top1_hits += 1
+
             reciprocal_ranks.append(1 / rank)
         else:
             rank = None
@@ -70,14 +78,18 @@ def evaluate(label: str = "", retrieve_fn=retrieve, top_k: int = TOP_K, verbose:
         })
 
     n = len(retrieval_questions)
-    hit_rate = hits / n if n else 0.0
+    precision_at_5 = hits / n if n else 0.0
+    precision_at_1 = top1_hits / n if n else 0.0
     mrr = sum(reciprocal_ranks) / n if n else 0.0
+    avg_latency_ms = sum(latencies) / len(latencies) if latencies else 0.0
 
     if verbose:
         print(f"\n=== Retrieval evaluation: {label} ===")
         print(f"Questions evaluated: {n}")
-        print(f"Hit Rate @ {top_k}: {hit_rate:.1%}  ({hits}/{n})")
+        print(f"Precision@5: {precision_at_5:.1%} ({hits}/{n})")
+        print(f"Precision@1: {precision_at_1:.1%} ({top1_hits}/{n})")
         print(f"MRR: {mrr:.3f}")
+        print(f"Average Latency: {avg_latency_ms:.2f} ms")
         print()
         for d in details:
             status = "HIT " if d["expected"] in d["retrieved"] else "MISS"
@@ -86,11 +98,17 @@ def evaluate(label: str = "", retrieve_fn=retrieve, top_k: int = TOP_K, verbose:
             print(f"       retrieved: {d['retrieved']}")
         print()
 
-    return {"label": label, "hit_rate": hit_rate, "mrr": mrr, "n": n, "details": details}
+    return {"label": label, "precision_at_5": precision_at_5, "precision_at_1": precision_at_1, "mrr": mrr, "avg_latency_ms": avg_latency_ms,  "n": n, "details": details}
 
 
 if __name__ == "__main__":
     import os
+
+    keyword = evaluate(
+        label="keyword-only (BM25, top_k=5)",
+        retrieve_fn=retrieve_keyword,
+        top_k=5,
+    )
 
     baseline = evaluate(label="baseline (vector-only, top_k=5)", retrieve_fn=retrieve, top_k=5)
 
@@ -107,9 +125,34 @@ if __name__ == "__main__":
     )
 
     print("=== Summary ===")
-    print(f"Baseline  -- Hit Rate: {baseline['hit_rate']:.1%}  MRR: {baseline['mrr']:.3f}")
-    print(f"Reranked  -- Hit Rate: {reranked['hit_rate']:.1%}  MRR: {reranked['mrr']:.3f}")
-    print(f"Hybrid    -- Hit Rate: {hybrid['hit_rate']:.1%}  MRR: {hybrid['mrr']:.3f}")
+
+    print(
+        f"Keyword   -- Precision@5: {keyword['precision_at_5']:.1%}  "
+        f"Precision@1: {keyword['precision_at_1']:.1%}  "
+        f"MRR: {keyword['mrr']:.3f}"
+        f"Latency: {keyword['avg_latency_ms']:.2f} ms"
+    )
+
+    print(
+        f"Baseline  -- Precision@5: {baseline['precision_at_5']:.1%}  "
+        f"Precision@1: {baseline['precision_at_1']:.1%}  "
+        f"MRR: {baseline['mrr']:.3f}"
+        f"Latency: {baseline['avg_latency_ms']:.2f} ms"
+    )
+
+    print(
+        f"Reranked  -- Precision@5: {reranked['precision_at_5']:.1%}  "
+        f"Precision@1: {reranked['precision_at_1']:.1%}  "
+        f"MRR: {reranked['mrr']:.3f}"
+        f"Latency: {reranked['avg_latency_ms']:.2f} ms"
+    )
+
+    print(
+        f"Hybrid    -- Precision@5: {hybrid['precision_at_5']:.1%}  "
+        f"Precision@1: {hybrid['precision_at_1']:.1%}  "
+        f"MRR: {hybrid['mrr']:.3f}"
+        f"Latency: {hybrid['avg_latency_ms']:.2f} ms"
+    )
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     os.makedirs("evaluation_results", exist_ok=True)
@@ -119,6 +162,7 @@ if __name__ == "__main__":
         json.dump(
             {
                 "timestamp": timestamp,
+                "keyword": keyword,
                 "baseline": baseline,
                 "reranked": reranked,
                 "hybrid": hybrid,

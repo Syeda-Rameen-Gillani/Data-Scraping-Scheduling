@@ -106,6 +106,14 @@ def classify_query(query: str) -> str:
         response = ollama.chat(
             model=LLM_MODEL,
             messages=[{"role": "user", "content": prompt}],
+            # Deterministic sampling: without this, classify_query's output
+            # for the SAME question can vary run to run (this is confirmed
+            # by comparing evaluation_results/classifier_eval_*.json runs,
+            # which show different accuracy on an unchanged eval set). A
+            # query router needs to be reproducible -- a user shouldn't get
+            # a different accept/reject decision for an identical question
+            # depending on sampling luck.
+            options={"temperature": 0},
         )
         raw_text = response["message"]["content"]
     except Exception as exc:

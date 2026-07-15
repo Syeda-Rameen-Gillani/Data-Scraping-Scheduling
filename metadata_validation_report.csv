@@ -1,0 +1,51 @@
+File,Priority Score,Completeness (%),Missing Count,Missing Fields
+Sindh High Court - MTcxMTFjZm1zLWRjODM=.json,94,54.37,13,Case Title; Judge Name(s); precedents_cited; Cited Case Laws; articles_sections_cited; statutes_mentioned; Applicant and Respondents; petitioner_appellant; respondent; Legal Sections Involved; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTY1OTBjZm1zLWRjODM=.json,82,60.19,11,Case Title; Judge Name(s); precedents_cited; Cited Case Laws; articles_sections_cited; statutes_mentioned; respondent; Legal Sections Involved; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTIyNzU1Y2Ztcy1kYzgz.json,76,63.11,10,Case Title; Judge Name(s); precedents_cited; Cited Case Laws; articles_sections_cited; statutes_mentioned; Legal Sections Involved; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTkxMzBjZm1zLWRjODM=.json,76,63.11,10,Case Title; Judge Name(s); precedents_cited; Cited Case Laws; articles_sections_cited; statutes_mentioned; Legal Sections Involved; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTAwNjYxY2Ztcy1kYzgz.json,72,65.05,10,Case Title; precedents_cited; Cited Case Laws; articles_sections_cited; statutes_mentioned; respondent; Legal Sections Involved; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTg1MTBjZm1zLWRjODM=.json,70,66.02,10,Case Title; precedents_cited; Cited Case Laws; articles_sections_cited; Legal Sections Involved; bench_strength; Hearing Date; citation_year; citation_journal; citation_page_number
+Sindh High Court - Mjg1NzQ1Y2Ztcy1kYzgz.json,66,67.96,9,Case Title; precedents_cited; Cited Case Laws; articles_sections_cited; statutes_mentioned; Legal Sections Involved; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTE3MzY5Y2Ztcy1kYzgz.json,66,67.96,9,Case Title; precedents_cited; Cited Case Laws; articles_sections_cited; statutes_mentioned; Legal Sections Involved; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTIwMTE2Y2Ztcy1kYzgz.json,66,67.96,9,Case Title; precedents_cited; Cited Case Laws; articles_sections_cited; statutes_mentioned; Legal Sections Involved; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTIwOTU3Y2Ztcy1kYzgz.json,66,67.96,9,Case Title; precedents_cited; Cited Case Laws; articles_sections_cited; statutes_mentioned; Legal Sections Involved; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTMwOTVjZm1zLWRjODM=.json,66,67.96,9,Case Title; precedents_cited; Cited Case Laws; articles_sections_cited; statutes_mentioned; Legal Sections Involved; citation_year; citation_journal; citation_page_number
+Sindh High Court - MjE5MzUzY2Ztcy1kYzgz.json,64,68.93,9,Case Title; precedents_cited; Cited Case Laws; articles_sections_cited; disposition_type; bench_strength; citation_year; citation_journal; citation_page_number
+Sindh High Court - MjgzMzc5Y2Ztcy1kYzgz.json,64,68.93,9,Decision/Order Date; final_decision; articles_sections_cited; statutes_mentioned; Legal Sections Involved; bench_strength; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTc2NTI2Y2Ztcy1kYzgz.json,63,69.42,9,Case Title; head_note; articles_sections_cited; Applicant and Respondents; Legal Sections Involved; bench_strength; citation_year; citation_journal; citation_page_number
+Sindh High Court - MjQ3MDY2Y2Ztcy1kYzgz.json,58,71.84,8,Case Title; precedents_cited; Cited Case Laws; articles_sections_cited; bench_strength; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTU5OTc0Y2Ztcy1kYzgz.json,58,71.84,8,Case Title; precedents_cited; Cited Case Laws; articles_sections_cited; Legal Sections Involved; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTkzNmNmbXMtZGM4Mw==.json,54,73.79,8,Case Title; Cited Case Laws; Legal Sections Involved; bench_strength; Hearing Date; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTY1NzRjZm1zLWRjODM=.json,54,73.79,8,Case Title; Cited Case Laws; Legal Sections Involved; bench_strength; Hearing Date; citation_year; citation_journal; citation_page_number
+Sindh High Court - MjE3MDBjZm1zLWRjODM=.json,54,73.79,7,Case Title; Judge Name(s); precedents_cited; Cited Case Laws; citation_year; citation_journal; citation_page_number
+Sindh High Court - MjQzMWNmbXMtZGM4Mw==.json,54,73.79,7,Case Title; Judge Name(s); precedents_cited; Cited Case Laws; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTc4MTE4Y2Ztcy1kYzgz.json,54,73.79,7,Case Title; Judge Name(s); precedents_cited; Cited Case Laws; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTIwOTg0Y2Ztcy1kYzgz.json,54,73.79,7,Case Title; Judge Name(s); precedents_cited; Cited Case Laws; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTIxODEzY2Ztcy1kYzgz.json,54,73.79,7,Case Title; Judge Name(s); precedents_cited; Cited Case Laws; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTM5ODc0Y2Ztcy1kYzgz.json,51,75.24,7,Case Title; head_note; articles_sections_cited; bench_strength; citation_year; citation_journal; citation_page_number
+Sindh High Court - MjQ3MDYyY2Ztcy1kYzgz.json,50,75.73,7,Case Title; precedents_cited; Cited Case Laws; Legal Sections Involved; citation_year; citation_journal; citation_page_number
+Sindh High Court - MjI3ODA3Y2Ztcy1kYzgz.json,44,78.64,6,Case Title; precedents_cited; Cited Case Laws; citation_year; citation_journal; citation_page_number
+Sindh High Court - MjI3ODM5Y2Ztcy1kYzgz.json,44,78.64,6,Case Title; precedents_cited; Cited Case Laws; citation_year; citation_journal; citation_page_number
+Sindh High Court - MjI3ODY5Y2Ztcy1kYzgz.json,44,78.64,6,Case Title; precedents_cited; Cited Case Laws; citation_year; citation_journal; citation_page_number
+Sindh High Court - MjI3OTI0Y2Ztcy1kYzgz.json,44,78.64,6,Case Title; precedents_cited; Cited Case Laws; citation_year; citation_journal; citation_page_number
+Sindh High Court - MjI3OTQ2Y2Ztcy1kYzgz.json,44,78.64,6,Case Title; precedents_cited; Cited Case Laws; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTE5ODE2Y2Ztcy1kYzgz.json,44,78.64,6,Case Title; precedents_cited; Cited Case Laws; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTU5OTc2Y2Ztcy1kYzgz.json,44,78.64,6,Case Title; precedents_cited; Cited Case Laws; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTU5OTY1Y2Ztcy1kYzgz.json,44,78.64,6,Case Title; precedents_cited; Cited Case Laws; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTc4MzI2Y2Ztcy1kYzgz.json,42,79.61,6,Case Title; Cited Case Laws; bench_strength; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTU5OTU3Y2Ztcy1kYzgz.json,42,79.61,6,Case Title; Cited Case Laws; bench_strength; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTA3OTQyY2Ztcy1kYzgz.json,38,81.55,5,Case Title; Judge Name(s); citation_year; citation_journal; citation_page_number
+Sindh High Court - MTM0ODhjZm1zLWRjODM=.json,38,81.55,5,Case Title; Judge Name(s); citation_year; citation_journal; citation_page_number
+Sindh High Court - MTI0NjQwY2Ztcy1kYzgz.json,34,83.5,5,precedents_cited; Cited Case Laws; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTI0NzM2Y2Ztcy1kYzgz.json,34,83.5,5,precedents_cited; Cited Case Laws; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTQwMTQyY2Ztcy1kYzgz.json,34,83.5,5,precedents_cited; Cited Case Laws; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTQwNTY1Y2Ztcy1kYzgz.json,32,84.47,5,articles_sections_cited; Legal Sections Involved; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTQxMjgzY2Ztcy1kYzgz.json,32,84.47,5,articles_sections_cited; bench_strength; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTE0ODk4Y2Ztcy1kYzgz.json,28,86.41,4,Case Title; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTE2MjQ2Y2Ztcy1kYzgz.json,28,86.41,4,Case Title; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTE4NjcyY2Ztcy1kYzgz.json,28,86.41,4,Case Title; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTEwMDY1Y2Ztcy1kYzgz.json,28,86.41,4,Case Title; citation_year; citation_journal; citation_page_number
+Sindh High Court - MTU5OTczY2Ztcy1kYzgz.json,28,86.41,4,Case Title; citation_year; citation_journal; citation_page_number
+Sindh High Court - MjAwNjIyY2Ztcy1kYzgz.json,18,91.26,3,citation_year; citation_journal; citation_page_number
+Sindh High Court - MTM4ODczY2Ztcy1kYzgz.json,18,91.26,3,citation_year; citation_journal; citation_page_number
+Sindh High Court - MTQwNTY0Y2Ztcy1kYzgz.json,18,91.26,3,citation_year; citation_journal; citation_page_number
