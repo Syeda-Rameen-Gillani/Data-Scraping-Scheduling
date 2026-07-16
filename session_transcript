@@ -1,0 +1,137 @@
+# Session Transcript — Chat Interface with Tool Calling
+
+
+
+```bash
+uvicorn app:app --reload
+curl "http://localhost:8000/chat?q=<question>"
+```
+
+for each turn below and pasting the real JSON responses in place of the illustrative ones.
+
+---
+
+### Turn 1 — greeting (no tool call)
+
+**User:** `Hi, can you help me with something?`
+
+Per `generation.py`'s system prompt ("Do NOT use the tool for: greetings, casual conversation,
+unrelated questions"), Gemini answers directly without calling `search_judgments`.
+
+```json
+{
+  "query": "Hi, can you help me with something?",
+  "answer": "Hello! I'm a research assistant for Sindh High Court judgments. I can help you look up specific cases, citations, judges, or legal questions related to this corpus. What would you like to know?",
+  "tool_used": null,
+  "results": []
+}
+```
+
+---
+
+### Turn 2 — specific case question (tool call)
+
+**User:** `What happened in the Marhaba Aviation Services case about dishonored cheques?`
+
+This matches the system prompt's "case examples" trigger, so Gemini calls `search_judgments`.
+`classify_query()` labels it `relevant`, so retrieval proceeds (`strategy="hybrid"` by default).
+
+```json
+{
+  "query": "What happened in the Marhaba Aviation Services case about dishonored cheques?",
+  "answer": "In this case, Marhaba Aviation Services sued over dishonored cheques, claiming Rs. 222,009,539 outstanding. The court ultimately decreed Rs. 115,000,000 -- less than the full amount claimed.",
+  "tool_used": "search_judgments",
+  "results": [
+    {
+      "case_number": "MTE0ODk4Y2Ztcy1kYzgz",
+      "case_title": null,
+      "citation": null,
+      "judge": null,
+      "decision_date": null,
+      "snippet": "...suit for recovery on dishonored cheques...",
+      "score": 0.91,
+      "source_url": null
+    }
+  ]
+}
+```
+
+---
+
+### Turn 3 — follow-up on the same result (no new tool call)
+
+**User:** `Who represented the plaintiff in that case?`
+
+Per §5.3, this is a follow-up referencing "that case" -- the previous tool result is still in
+`conversation.last_results` and in the Gemini conversation history, so the system prompt instructs
+the model not to call the tool again ("Do NOT call search_judgments again unless a new search is
+needed"). Gemini answers from the prior turn's retrieved snippet instead.
+
+```json
+{
+  "query": "Who represented the plaintiff in that case?",
+  "answer": "Based on the previous result, I don't have the advocate's name in the retrieved snippet -- would you like me to run a fresh search specifically for that detail?",
+  "tool_used": null,
+  "results": []
+}
+```
+
+*(This turn also shows an honest limitation: the tool's `snippet` field truncates chunk text to
+500 characters, so follow-up questions about details outside that window sometimes can't be
+answered from history alone -- Gemini should ideally offer a fresh search rather than guessing,
+which is what the system prompt's "if information is unavailable, clearly say so" rule is for.)*
+
+---
+
+### Turn 4 — topic shift to a new legal question (new tool call)
+
+**User:** `Separately, can you find cases about security being furnished to release a vessel?`
+
+"Separately" signals a topic shift, so Gemini invokes `search_judgments` again with a new query,
+per §5.3 ("If the user shifts topic to a new legal question, the LLM invokes the tool again").
+
+```json
+{
+  "query": "Separately, can you find cases about security being furnished to release a vessel?",
+  "answer": "Yes -- one case involved cargo aboard the M.V. Miski, released conditional on an alternate vessel, US$60,000 security, and payment of KPT dues.",
+  "tool_used": "search_judgments",
+  "results": [
+    {
+      "case_number": "MTI0NjQwY2Ztcy1kYzgz",
+      "case_title": null,
+      "citation": null,
+      "judge": null,
+      "decision_date": null,
+      "snippet": "...cargo released to plaintiff conditional on alternate vessel, US$60,000 security...",
+      "score": 0.88,
+      "source_url": null
+    }
+  ]
+}
+```
+
+---
+
+### Turn 5 — off-domain query (classifier rejection, no retrieval)
+
+**User:** `What's a good biryani recipe?`
+
+`classify_query()` labels this `irrelevant`. Per `tools.py`, `search_judgments` returns
+`{"status": "not_applicable", ...}` without running any retrieval strategy, and Gemini turns that
+into a friendly decline.
+
+```json
+{
+  "query": "What's a good biryani recipe?",
+  "answer": "I can help you find Pakistani court judgments, but that question doesn't seem related to Sindh High Court case law. Could you rephrase or ask about a specific case, judge, or legal issue?",
+  "tool_used": "search_judgments",
+  "results": {
+    "status": "not_applicable",
+    "message": "This query does not appear related to Sindh High Court judgments."
+  }
+}
+```
+
+*(Flagged in `COMPARISON.md`'s Classifier Evaluation section: this exact query is one of the
+documented false-positive risks from the 18-question classifier run, so it's a good one to
+re-verify once `evaluate_classification.py` is re-run with the temperature=0 fix.)*
